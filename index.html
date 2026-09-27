@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP Productivity Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background-color: #F5F5F5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="p-4 text-gray-800">
+
+  <div class="max-w-7xl mx-auto space-y-4">
+
+    <!-- HEADER -->
+    <header class="bg-[#EE4D2D] text-white rounded-2xl p-5 shadow-md flex justify-between items-center flex-wrap gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-white text-[#EE4D2D] p-2.5 rounded-xl shadow-sm">
+          <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black">SP Productivity Calculator</h1>
+            <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">EXPRESS OPS</span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5 text-xs text-orange-100">
+            <span>Real-Time Operations & Sortpack Analytics</span>
+            <span>•</span>
+            <span class="bg-black/20 text-white font-bold px-2 py-0.5 rounded flex items-center gap-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+              <span id="hdrDate">September 27, 2026</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <input type="date" id="datePicker" onchange="setDate(this.value)" class="bg-white/20 text-white text-xs font-bold border border-white/30 rounded-lg px-2.5 py-1.5 focus:outline-none">
+        <button onclick="resetData()" class="bg-white text-[#EE4D2D] font-bold text-xs px-3 py-2 rounded-lg hover:bg-orange-50 transition shadow-sm">Reset</button>
+      </div>
+    </header>
+
+    <!-- TOP CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#EE4D2D] flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1">
+            <i data-lucide="zap" class="w-3.5 h-3.5 text-[#EE4D2D]"></i> EXPECTED PRODUCTIVITY
+          </p>
+          <p id="topExpProd" class="text-3xl font-black text-[#EE4D2D] mt-1">283</p>
+          <p class="text-[10px] text-gray-400">Volume ÷ Man Hours</p>
+        </div>
+        <div class="p-3 bg-orange-50 text-[#EE4D2D] rounded-xl"><i data-lucide="trending-up" class="w-7 h-7"></i></div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-gray-800 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1">
+            <i data-lucide="package" class="w-3.5 h-3.5 text-gray-700"></i> TOTAL VOLUME
+          </p>
+          <p id="topVol" class="text-3xl font-black text-gray-800 mt-1">820,098</p>
+          <p class="text-[10px] text-gray-400">Live Input Volume</p>
+        </div>
+        <div class="p-3 bg-gray-100 text-gray-800 rounded-xl"><i data-lucide="boxes" class="w-7 h-7"></i></div>
+      </div>
+
+      <div id="targetCard" class="bg-emerald-50 rounded-xl p-4 shadow-sm border-l-4 border-emerald-500 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-bold text-emerald-800 uppercase flex items-center gap-1">
+            <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-600"></i> TARGET COMPARISON
+          </p>
+          <p id="targetStatus" class="text-2xl font-black text-emerald-700 mt-1">ABOVE TARGET</p>
+          <p id="targetVar" class="text-[11px] font-bold text-emerald-800">Variance: +2 units/hr</p>
+        </div>
+        <div class="p-3 bg-emerald-100 text-emerald-700 rounded-xl"><i data-lucide="check-circle-2" class="w-7 h-7"></i></div>
+      </div>
+    </div>
+
+    <!-- MAIN PANELS -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT TABLE -->
+      <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between">
+        <div>
+          <div class="bg-[#1e293b] text-white px-4 py-3 flex justify-between items-center">
+            <h2 class="font-bold text-sm tracking-wide flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-[#EE4D2D]"></i> SORTPACK Headcount Breakdown
+            </h2>
+            <span class="text-[10px] font-bold bg-[#EE4D2D] text-white px-2 py-0.5 rounded-full">LIVE REACTIVE</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-gray-800 text-gray-200 font-semibold uppercase">
+                  <th class="p-3 pl-4">Process Category</th>
+                  <th class="p-3 text-center w-20">Shift 1 <br><span class="text-[9px] font-normal text-orange-300">(4PM)</span></th>
+                  <th class="p-3 text-center w-20">Shift 2 <br><span class="text-[9px] font-normal text-orange-300">(8PM)</span></th>
+                  <th class="p-3 text-center w-20">Shift 3 <br><span class="text-[9px] font-normal text-orange-300">(10PM)</span></th>
+                  <th class="p-3 text-center w-20 bg-gray-900 text-[#EE4D2D] font-bold">Total</th>
+                </tr>
+              </thead>
+              <tbody id="tblBody" class="divide-y divide-gray-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="p-3 bg-orange-50 border-t border-orange-100 flex items-center justify-between text-xs font-bold text-gray-700">
+          <span class="text-gray-400 font-normal">Editing shift headcount immediately re-calculates right panel metrics.</span>
+          <div>Total HC: <span id="grandHC" class="text-[#EE4D2D] font-black text-sm ml-1">329</span></div>
+        </div>
+      </div>
+
+      <!-- RIGHT SUMMARY METRICS -->
+      <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-[#1e293b] text-white px-4 py-3 flex justify-between items-center">
+          <h2 class="font-bold text-sm tracking-wide flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-[#EE4D2D]"></i> Metrics & Target Summary
+          </h2>
+          <span class="text-[10px] text-emerald-400 font-mono">Auto Sync</span>
+        </div>
+
+        <div class="p-4 space-y-2.5 text-xs">
+          <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="font-semibold text-gray-700">Volume</span>
+            <input type="number" id="inpVol" value="820098" oninput="calc()" class="w-32 text-right font-black border border-gray-300 rounded px-2 py-1">
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="font-semibold text-gray-700">Difference Plan vs Pos Act</span>
+            <input type="number" id="inpDiff" value="30000" oninput="calc()" class="w-32 text-right font-black text-[#EE4D2D] border border-gray-300 rounded px-2 py-1">
+          </div>
+
+          <div class="flex items-center justify-between p-2.5 rounded bg-orange-50 border border-orange-200">
+            <span class="font-bold text-gray-800">Over Forecast</span>
+            <span id="resOver" class="font-black text-[#EE4D2D] text-sm">790,098</span>
+          </div>
+
+          <div class="flex items-center justify-between p-2.5 rounded bg-orange-50 border border-orange-200">
+            <span class="font-bold text-gray-800">Total Headcount (From Table)</span>
+            <span id="resHC" class="font-black text-[#EE4D2D] text-sm">329</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2 bg-gray-50 border rounded">
+              <label class="block text-[10px] font-bold text-gray-500 uppercase">Shift Hours / HC</label>
+              <input type="number" step="0.1" id="inpHrs" value="8.5" oninput="calc()" class="w-full text-center font-bold border border-gray-300 rounded mt-1 py-1">
+            </div>
+            <div class="p-2 bg-gray-50 border rounded text-center">
+              <span class="block text-[10px] font-bold text-gray-500 uppercase">Calculated Man Hours</span>
+              <span id="resMH" class="block font-black mt-1.5">2,797</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+            <div>
+              <p class="font-bold text-emerald-900">Expected Productivity</p>
+              <p class="text-[10px] text-emerald-700">Over Forecast ÷ Man Hours</p>
+            </div>
+            <span id="resExpProd" class="text-xl font-black text-emerald-700">283</span>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+            <span class="font-semibold text-gray-700">Target Productivity</span>
+            <input type="number" id="inpTarget" value="281" oninput="calc()" class="w-28 text-right font-black border border-gray-300 rounded px-2 py-1">
+          </div>
+
+          <div class="p-2.5 rounded bg-gray-50 border border-gray-200 flex items-center justify-between">
+            <div>
+              <p class="font-bold text-gray-800">If Vol will materialized</p>
+              <p class="text-[10px] text-gray-400">Volume ÷ Man Hours</p>
+            </div>
+            <span id="resVolMat" class="font-black text-sm">293</span>
+          </div>
+
+          <div id="remBox" class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+            <div>
+              <p class="font-bold text-amber-900">Remaining Man Hours</p>
+              <p class="text-[10px] text-amber-700">Hours buffer to reach Target</p>
+            </div>
+            <span id="resRemMH" class="text-xl font-black text-amber-800">+15</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const items = [
+      { id: "non_func", name: "Non-Functional + FEX", s1: 0, s2: 29, s3: 0 },
+      { id: "hosp", name: "Hospital + TAA/TAB Plungers", s1: 0, s2: 4, s3: 0 },
+      { id: "cbs", name: "CBS", s1: 0, s2: 94, s3: 0 },
+      { id: "sap", name: "SAP", s1: 0, s2: 55, s3: 0 },
+      { id: "sab", name: "SAB", s1: 0, s2: 30, s3: 0 },
+      { id: "os_ow", name: "OS/OW", s1: 0, s2: 40, s3: 15 },
+      { id: "obs", name: "OBS", s1: 0, s2: 50, s3: 0 },
+      { id: "staging", name: "Staging", s1: 0, s2: 12, s3: 0 }
+    ];
+
+    let data = JSON.parse(JSON.stringify(items));
+
+    function render() {
+      const tbody = document.getElementById("tblBody");
+      tbody.innerHTML = "";
+      data.forEach((row) => {
+        const total = row.s1 + row.s2 + row.s3;
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-orange-50/40";
+        tr.innerHTML = `
+          <td class="p-2.5 pl-4 font-bold text-gray-800">${row.name}</td>
+          <td class="p-1 text-center"><input type="number" min="0" value="${row.s1}" oninput="updateRow('${row.id}', 's1', this.value)" class="w-14 text-center font-bold border rounded py-1"></td>
+          <td class="p-1 text-center"><input type="number" min="0" value="${row.s2}" oninput="updateRow('${row.id}', 's2', this.value)" class="w-14 text-center font-bold border rounded py-1"></td>
+          <td class="p-1 text-center"><input type="number" min="0" value="${row.s3}" oninput="updateRow('${row.id}', 's3', this.value)" class="w-14 text-center font-bold border rounded py-1"></td>
+          <td class="p-2 text-center font-black bg-gray-100">${total}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateRow(id, field, val) {
+      const item = data.find(x => x.id === id);
+      if (item) item[field] = parseInt(val) || 0;
+      render();
+      calc();
+    }
+
+    function calc() {
+      let totalHC = 0;
+      data.forEach(x => totalHC += (x.s1 + x.s2 + x.s3));
+
+      document.getElementById("grandHC").innerText = totalHC;
+      document.getElementById("resHC").innerText = totalHC;
+
+      const vol = parseFloat(document.getElementById("inpVol").value) || 0;
+      const diff = parseFloat(document.getElementById("inpDiff").value) || 0;
+      const hrs = parseFloat(document.getElementById("inpHrs").value) || 8.5;
+      const tgt = parseFloat(document.getElementById("inpTarget").value) || 281;
+
+      const over = vol - diff;
+      document.getElementById("resOver").innerText = Math.round(over).toLocaleString();
+
+      const mh = totalHC * hrs;
+      document.getElementById("resMH").innerText = Math.round(mh).toLocaleString();
+
+      const expProd = mh > 0 ? Math.round(over / mh) : 0;
+      document.getElementById("resExpProd").innerText = expProd;
+      document.getElementById("topExpProd").innerText = expProd;
+      document.getElementById("topVol").innerText = Math.round(vol).toLocaleString();
+
+      const volMat = mh > 0 ? Math.round(vol / mh) : 0;
+      document.getElementById("resVolMat").innerText = volMat;
+
+      const reqMH = tgt > 0 ? (over / tgt) : 0;
+      const remMH = Math.round(reqMH - mh);
+      const remElem = document.getElementById("resRemMH");
+
+      if (remMH >= 0) {
+        remElem.innerText = `+${remMH}`;
+        remElem.className = "text-xl font-black text-emerald-700";
+      } else {
+        remElem.innerText = remMH;
+        remElem.className = "text-xl font-black text-amber-800";
+      }
+
+      const variance = expProd - tgt;
+      document.getElementById("targetStatus").innerText = variance >= 0 ? "ABOVE TARGET" : "BELOW TARGET";
+      document.getElementById("targetVar").innerText = `Variance: ${variance >= 0 ? '+' : ''}${variance} units/hr`;
+
+      lucide.createIcons();
+    }
+
+    function setDate(v) {
+      if (!v) return;
+      const d = new Date(v);
+      const str = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById("hdrDate").innerText = str;
+    }
+
+    function resetData() {
+      data = JSON.parse(JSON.stringify(items));
+      document.getElementById("inpVol").value = 820098;
+      document.getElementById("inpDiff").value = 30000;
+      document.getElementById("inpHrs").value = 8.5;
+      document.getElementById("inpTarget").value = 281;
+      initDate();
+      render();
+      calc();
+    }
+
+    function initDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById("datePicker").value = `${yyyy}-${mm}-${dd}`;
+      setDate(`${yyyy}-${mm}-${dd}`);
+    }
+
+    window.onload = function() {
+      initDate();
+      render();
+      calc();
+    };
+  </script>
+</body>
+</html>
