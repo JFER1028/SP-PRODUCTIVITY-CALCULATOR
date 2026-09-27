@@ -166,7 +166,7 @@
 
           <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
             <span class="font-semibold text-gray-700">Target Productivity</span>
-            <input type="number" id="inpTarget" value="281" oninput="calc()" class="w-28 text-right font-black border border-gray-300 rounded px-2 py-1">
+            <input type="number" id="inpTarget" value="282" oninput="calc()" class="w-28 text-right font-black border border-gray-300 rounded px-2 py-1">
           </div>
 
           <div class="p-2.5 rounded bg-gray-50 border border-gray-200 flex items-center justify-between">
@@ -239,7 +239,7 @@
       const vol = parseFloat(document.getElementById("inpVol").value) || 0;
       const diff = parseFloat(document.getElementById("inpDiff").value) || 0;
       const hrs = parseFloat(document.getElementById("inpHrs").value) || 8.5;
-      const tgt = parseFloat(document.getElementById("inpTarget").value) || 281;
+      const tgt = parseFloat(document.getElementById("inpTarget").value) || 282;
 
       const over = vol - diff;
       document.getElementById("resOver").innerText = Math.round(over).toLocaleString();
@@ -286,7 +286,7 @@
       document.getElementById("inpVol").value = 820098;
       document.getElementById("inpDiff").value = 30000;
       document.getElementById("inpHrs").value = 8.5;
-      document.getElementById("inpTarget").value = 281;
+      document.getElementById("inpTarget").value = 282;
       initDate();
       render();
       calc();
