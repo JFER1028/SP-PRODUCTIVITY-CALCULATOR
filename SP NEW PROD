@@ -1,1 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SP Productivity Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .table-input:focus { outline: 2px solid #EE4D2D; background-color: #FFF7ED; }
+  </style>
+</head>
+<body class="p-4 text-gray-800">
 
+  <div class="max-w-7xl mx-auto space-y-4">
+
+    <!-- HEADER -->
+    <header class="bg-[#EE4D2D] text-white rounded-2xl p-5 shadow-md flex justify-between items-center flex-wrap gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-white text-[#EE4D2D] p-2.5 rounded-xl shadow-sm">
+          <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black tracking-tight" id="appTitle">SP Productivity Calculator</h1>
+            <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">EXPRESS OPS</span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5 text-xs text-orange-100">
+            <span>Real-Time Operations & Sortpack Analytics</span>
+            <span>•</span>
+            <span class="bg-black/20 text-white font-bold px-2 py-0.5 rounded flex items-center gap-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+              <span id="hdrDate">September 28, 2026</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2" id="headerActions">
+        <input type="date" id="datePicker" onchange="setDate(this.value)" class="bg-white/20 text-white text-xs font-bold border border-white/30 rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer">
+      </div>
+    </header>
+
+    <!-- PURE REFERENCE VIEW -->
+    <div id="pureReferenceView" class="hidden bg-white rounded-2xl p-6 shadow-md border border-gray-200 space-y-6">
+      <div class="flex justify-between items-center border-b pb-4 flex-wrap gap-2">
+        <div>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Saved Reference Card</span>
+          <h2 class="text-xl font-black text-gray-800" id="refViewDate">Reference Summary</h2>
+        </div>
+        <button onclick="exitReferenceView()" class="bg-[#EE4D2D] hover:bg-orange-600 text-white font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Bumalik sa Main Calculator
+        </button>
+      </div>
+
+      <!-- Top Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-orange-50 border border-orange-100 rounded-xl text-center">
+          <p class="text-[10px] font-bold text-orange-600 uppercase">Target Productivity</p>
+          <p class="text-2xl font-black text-gray-800 mt-1" id="refTgt">282</p>
+        </div>
+        <div class="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
+          <p class="text-[10px] font-bold text-gray-500 uppercase">Total Volume</p>
+          <p class="text-2xl font-black text-gray-800 mt-1" id="refVol">0</p>
+        </div>
+        <div class="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
+          <p class="text-[10px] font-bold text-gray-500 uppercase">Total Headcount</p>
+          <p class="text-2xl font-black text-gray-800 mt-1" id="refHC">0</p>
+        </div>
+        <div class="p-4 rounded-xl text-center border" id="refStatusBox">
+          <p class="text-[10px] font-bold uppercase" id="refStatusLabel">Expected Productivity</p>
+          <p class="text-2xl font-black mt-1" id="refExpProd">0</p>
+        </div>
+      </div>
+
+      <!-- MAIN REFERENCE CONTENT -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT: PROCESS CATEGORY BREAKDOWN -->
+        <div class="lg:col-span-7 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+          <div class="bg-gray-800 text-white px-4 py-3 text-xs font-bold flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-orange-400"></i> Process Category Headcount Breakdown
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-gray-200 text-gray-700 font-bold border-b">
+                  <th class="p-2.5 pl-4">Process Category</th>
+                  <th class="p-2.5 text-center">Shift 1 (4PM)</th>
+                  <th class="p-2.5 text-center">Shift 2 (8PM)</th>
+                  <th class="p-2.5 text-center">Shift 3 (10PM)</th>
+                  <th class="p-2.5 text-center bg-gray-300 font-black">Total</th>
+                </tr>
+              </thead>
+              <tbody id="refTableBody" class="divide-y divide-gray-200 font-medium bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- RIGHT: METRICS & TARGET SUMMARY -->
+        <div class="lg:col-span-5 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+          <div class="bg-gray-800 text-white px-4 py-3 text-xs font-bold flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-orange-400"></i> Metrics & Target Summary
+          </div>
+          <div class="p-4 space-y-2.5 text-xs bg-white">
+            <div class="flex justify-between items-center p-2 rounded bg-gray-50 border">
+              <span class="font-semibold text-gray-700">Volume</span>
+              <span id="refMetricVol" class="font-black text-gray-800 text-sm">0</span>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded bg-gray-50 border">
+              <span class="font-semibold text-gray-700">Difference Plan vs Pos Act</span>
+              <span id="refMetricDiff" class="font-black text-[#EE4D2D] text-sm">0</span>
+            </div>
+            <div class="flex justify-between items-center p-2.5 rounded bg-orange-50 border border-orange-200">
+              <span class="font-bold text-gray-800">Over Forecast</span>
+              <span id="refMetricOver" class="font-black text-[#EE4D2D] text-sm">0</span>
+            </div>
+            <div class="flex justify-between items-center p-2.5 rounded bg-orange-50 border border-orange-200">
+              <span class="font-bold text-gray-800">Total Headcount</span>
+              <span id="refMetricHC" class="font-black text-[#EE4D2D] text-sm">0</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-2 bg-gray-50 border rounded text-center">
+                <span class="block text-[10px] font-bold text-gray-500 uppercase">Shift Hours / HC</span>
+                <span id="refMetricHrs" class="block font-bold mt-1">8.5</span>
+              </div>
+              <div class="p-2 bg-gray-50 border rounded text-center">
+                <span class="block text-[10px] font-bold text-gray-500 uppercase">Calculated Man Hours</span>
+                <span id="refMetricMH" class="block font-black mt-1">0</span>
+              </div>
+            </div>
+            <div id="refExpProdContainer" class="p-3 rounded-xl flex items-center justify-between border">
+              <div>
+                <p id="refExpProdTitle" class="font-bold">Expected Productivity</p>
+                <p id="refExpProdSub" class="text-[10px]">Over Forecast ÷ Man Hours</p>
+              </div>
+              <span id="refMetricExpProd" class="text-xl font-black">0</span>
+            </div>
+            <div class="flex justify-between items-center p-2 rounded bg-gray-50 border">
+              <span class="font-semibold text-gray-700">Target Productivity</span>
+              <span id="refMetricTarget" class="font-black text-gray-800">282</span>
+            </div>
+            <div class="flex justify-between items-center p-2.5 rounded bg-gray-50 border">
+              <div>
+                <p class="font-bold text-gray-800">If Vol will materialized</p>
+                <p class="text-[10px] text-gray-400">Volume ÷ Man Hours</p>
+              </div>
+              <span id="refMetricVolMat" class="font-black text-sm">0</span>
+            </div>
+            <div id="refRemBox" class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+              <div>
+                <p class="font-bold text-amber-900">Remaining Man Hours</p>
+                <p class="text-[10px] text-amber-700">Hours buffer to reach Target</p>
+              </div>
+              <span id="refMetricRemMH" class="text-xl font-black text-amber-800">0</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
+        <i data-lucide="shield-check" class="w-4 h-4 text-amber-600"></i>
+        <span><b>Reference View Active:</b> Eksaktong mga numerong na-save noong araw na iyon ang ipinapakita rito nang walang pagbabago.</span>
+      </div>
+    </div>
+
+    <!-- MAIN EDITING DASHBOARD -->
+    <div id="mainDashboard" class="space-y-4">
+      <!-- TOP SUMMARY CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div id="topExpCard" class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-[#EE4D2D]"></i> EXPECTED PRODUCTIVITY
+            </p>
+            <p id="topExpProd" class="text-3xl font-black text-red-600 mt-1">283</p>
+            <p class="text-[10px] text-gray-400">Over Forecast ÷ Man Hours</p>
+          </div>
+          <div id="topExpIconBox" class="p-3 bg-red-50 text-red-600 rounded-xl"><i data-lucide="trending-up" class="w-7 h-7"></i></div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-gray-800 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+              <i data-lucide="package" class="w-3.5 h-3.5 text-gray-700"></i> TOTAL VOLUME
+            </p>
+            <p id="topVol" class="text-3xl font-black text-gray-800 mt-1">820,098</p>
+            <p class="text-[10px] text-gray-400">Live Input Volume</p>
+          </div>
+          <div class="p-3 bg-gray-100 text-gray-800 rounded-xl"><i data-lucide="boxes" class="w-7 h-7"></i></div>
+        </div>
+
+        <div id="targetCard" class="bg-emerald-50 rounded-xl p-4 shadow-sm border-l-4 border-emerald-500 flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+              <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-600"></i> TARGET COMPARISON
+            </p>
+            <p id="targetStatus" class="text-2xl font-black text-emerald-700 mt-1">ABOVE TARGET</p>
+            <p id="targetVar" class="text-[11px] font-bold text-emerald-800">Variance: +1 units/hr</p>
+          </div>
+          <div class="p-3 bg-emerald-100 text-emerald-700 rounded-xl"><i data-lucide="check-circle-2" class="w-7 h-7"></i></div>
+        </div>
+      </div>
+
+      <!-- MAIN PANELS -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT: HEADCOUNT TABLE WITH DIRECT GSHEET CTRL+V PASTE -->
+        <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between">
+          <div>
+            <div class="bg-[#1e293b] text-white px-4 py-3 flex justify-between items-center flex-wrap gap-2">
+              <h2 class="font-bold text-sm tracking-wide flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-[#EE4D2D]"></i> SORTPACK Headcount Breakdown
+              </h2>
+              <span class="text-[10px] bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                <i data-lucide="clipboard-check" class="w-3 h-3"></i> Direct Ctrl+V Paste Enabled
+              </span>
+            </div>
+
+            <div class="p-2.5 bg-emerald-50 border-b border-emerald-100 text-[11px] text-emerald-900 flex items-center gap-1.5">
+              <i data-lucide="info" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+              <span><b>Paano mag-paste:</b> I-highlight lang ang rows/columns sa GSheet o Excel, i-copy (Ctrl+C), i-click ang unang input box sa baba, at i-press ang <b>Ctrl + V</b>!</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-gray-800 text-gray-200 font-semibold uppercase">
+                    <th class="p-3 pl-4">Process Category</th>
+                    <th class="p-3 text-center w-20">Shift 1 <br><span class="text-[9px] font-normal text-orange-300">(4PM)</span></th>
+                    <th class="p-3 text-center w-20">Shift 2 <br><span class="text-[9px] font-normal text-orange-300">(8PM)</span></th>
+                    <th class="p-3 text-center w-20">Shift 3 <br><span class="text-[9px] font-normal text-orange-300">(10PM)</span></th>
+                    <th class="p-3 text-center w-20 bg-gray-900 text-[#EE4D2D] font-bold">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="tblBody" class="divide-y divide-gray-100 font-medium"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="p-3 bg-orange-50 border-t border-orange-100 flex items-center justify-between text-xs font-bold text-gray-700">
+            <span class="text-gray-400 font-normal">Awtomatikong sumasama ang naka-plan sa saved reference data.</span>
+            <div>Total HC: <span id="grandHC" class="text-[#EE4D2D] font-black text-sm ml-1">329</span></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: SUMMARY METRICS -->
+        <div class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="bg-[#1e293b] text-white px-4 py-3 flex justify-between items-center">
+            <h2 class="font-bold text-sm tracking-wide flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-[#EE4D2D]"></i> Metrics & Target Summary
+            </h2>
+            <span class="text-[10px] text-emerald-400 font-mono">Auto Sync</span>
+          </div>
+
+          <div class="p-4 space-y-2.5 text-xs">
+            <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+              <span class="font-semibold text-gray-700">Volume</span>
+              <input type="number" id="inpVol" value="820098" oninput="calc()" onfocus="this.select()" class="w-32 text-right font-black border border-gray-300 rounded px-2 py-1 focus:outline-orange-500">
+            </div>
+
+            <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+              <span class="font-semibold text-gray-700">Difference Plan vs Pos Act</span>
+              <input type="number" id="inpDiff" value="30000" oninput="calc()" onfocus="this.select()" class="w-32 text-right font-black text-[#EE4D2D] border border-gray-300 rounded px-2 py-1 focus:outline-orange-500">
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 rounded bg-orange-50 border border-orange-200">
+              <span class="font-bold text-gray-800">Over Forecast</span>
+              <span id="resOver" class="font-black text-[#EE4D2D] text-sm">790,098</span>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 rounded bg-orange-50 border border-orange-200">
+              <span class="font-bold text-gray-800">Total Headcount (From Table)</span>
+              <span id="resHC" class="font-black text-[#EE4D2D] text-sm">329</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-2 bg-gray-50 border rounded">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase">Shift Hours / HC</label>
+                <input type="number" step="0.1" id="inpHrs" value="8.5" oninput="calc()" onfocus="this.select()" class="w-full text-center font-bold border border-gray-300 rounded mt-1 py-1 focus:outline-orange-500">
+              </div>
+              <div class="p-2 bg-gray-50 border rounded text-center">
+                <span class="block text-[10px] font-bold text-gray-500 uppercase">Calculated Man Hours</span>
+                <span id="resMH" class="block font-black mt-1.5">2,797</span>
+              </div>
+            </div>
+
+            <div id="expProdContainer" class="p-3 rounded-xl flex items-center justify-between border">
+              <div>
+                <p id="expProdTitle" class="font-bold">Expected Productivity</p>
+                <p id="expProdSub" class="text-[10px]">Over Forecast ÷ Man Hours</p>
+              </div>
+              <span id="resExpProd" class="text-xl font-black">283</span>
+            </div>
+
+            <div class="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+              <span class="font-semibold text-gray-700">Target Productivity</span>
+              <input type="number" id="inpTarget" value="282" oninput="calc()" onfocus="this.select()" class="w-28 text-right font-black border border-gray-300 rounded px-2 py-1 focus:outline-orange-500">
+            </div>
+
+            <div class="p-2.5 rounded bg-gray-50 border border-gray-200 flex items-center justify-between">
+              <div>
+                <p class="font-bold text-gray-800">If Vol will materialized</p>
+                <p class="text-[10px] text-gray-400">Volume ÷ Man Hours</p>
+              </div>
+              <span id="resVolMat" class="font-black text-sm">293</span>
+            </div>
+
+            <div id="remBox" class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+              <div>
+                <p class="font-bold text-amber-900">Remaining Man Hours</p>
+                <p class="text-[10px] text-amber-700">Hours buffer to reach Target</p>
+              </div>
+              <span id="resRemMH" class="text-xl font-black text-amber-800">+5</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- DAILY RUNNING DUMP & REFERENCE LIBRARY -->
+      <div id="dailyDumpSection" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-[#1e293b] text-white px-4 py-3 flex justify-between items-center flex-wrap gap-2">
+          <h2 class="font-bold text-sm tracking-wide flex items-center gap-2">
+            <i data-lucide="archive" class="w-4 h-4 text-[#EE4D2D]"></i> Running Daily Dump & Reference Library
+          </h2>
+          <button onclick="saveCurrentToArchive()" class="bg-[#EE4D2D] hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+            <i data-lucide="save" class="w-3.5 h-3.5"></i> Save / Dump Today's Plan
+          </button>
+        </div>
+
+        <div class="p-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-gray-100 text-gray-600 font-semibold uppercase border-b">
+                  <th class="p-2.5">Date</th>
+                  <th class="p-2.5 text-right">Volume</th>
+                  <th class="p-2.5 text-center">Headcount</th>
+                  <th class="p-2.5 text-center">Man Hours</th>
+                  <th class="p-2.5 text-center">Exp. Prod</th>
+                  <th class="p-2.5 text-center">Status</th>
+                  <th class="p-2.5 text-center">Reference View Action</th>
+                  <th class="p-2.5 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyTbody" class="divide-y divide-gray-100 font-medium">
+                <!-- Records render here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const defaultItems = [
+      { id: "non_func", name: "Non-Functional + FEX", s1: 0, s2: 29, s3: 0 },
+      { id: "hosp", name: "Hospital + TAA/TAB Plungers", s1: 0, s2: 4, s3: 0 },
+      { id: "cbs", name: "CBS", s1: 0, s2: 94, s3: 0 },
+      { id: "sap", name: "SAP", s1: 0, s2: 55, s3: 0 },
+      { id: "sab", name: "SAB", s1: 0, s2: 30, s3: 0 },
+      { id: "os_ow", name: "OS/OW", s1: 0, s2: 40, s3: 15 },
+      { id: "obs", name: "OBS", s1: 0, s2: 50, s3: 0 },
+      { id: "staging", name: "Staging", s1: 0, s2: 12, s3: 0 }
+    ];
+
+    let data = JSON.parse(JSON.stringify(defaultItems));
+    let archive = JSON.parse(localStorage.getItem('sp_calc_archive') || '[]');
+
+    let currentCalculatedValues = {
+      remMH: 5,
+      over: 790098,
+      expProd: 283,
+      mh: 2797,
+      volMat: 293
+    };
+
+    function buildTableOnce() {
+      const tbody = document.getElementById("tblBody");
+      tbody.innerHTML = "";
+      data.forEach((row, rowIdx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-orange-50/40";
+        tr.innerHTML = `
+          <td class="p-2.5 pl-4 font-bold text-gray-800">${row.name}</td>
+          <td class="p-1 text-center"><input type="number" id="inp_${row.id}_s1" data-row="${rowIdx}" data-col="0" min="0" value="${row.s1}" oninput="updateRow('${row.id}')" onfocus="this.select()" class="table-input w-14 text-center font-bold border rounded py-1"></td>
+          <td class="p-1 text-center"><input type="number" id="inp_${row.id}_s2" data-row="${rowIdx}" data-col="1" min="0" value="${row.s2}" oninput="updateRow('${row.id}')" onfocus="this.select()" class="table-input w-14 text-center font-bold border rounded py-1"></td>
+          <td class="p-1 text-center"><input type="number" id="inp_${row.id}_s3" data-row="${rowIdx}" data-col="2" min="0" value="${row.s3}" oninput="updateRow('${row.id}')" onfocus="this.select()" class="table-input w-14 text-center font-bold border rounded py-1"></td>
+          <td class="p-2 text-center font-black bg-gray-100" id="tot_${row.id}">${row.s1 + row.s2 + row.s3}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      attachPasteListeners();
+    }
+
+    function attachPasteListeners() {
+      const inputs = document.querySelectorAll('.table-input');
+      inputs.forEach(input => {
+        input.addEventListener('paste', function(e) {
+          e.preventDefault();
+          const clipboardData = e.clipboardData || window.clipboardData;
+          const pastedText = clipboardData.getData('text');
+          if (!pastedText) return;
+
+          const startRow = parseInt(this.getAttribute('data-row'));
+          const startCol = parseInt(this.getAttribute('data-col'));
+          const rows = pastedText.trim().split(/\r?\n/);
+          
+          rows.forEach((rowStr, rOffset) => {
+            const targetRowIdx = startRow + rOffset;
+            if (targetRowIdx < data.length) {
+              const cells = rowStr.split(/[\t,]/);
+              cells.forEach((cellVal, cOffset) => {
+                const targetColIdx = startCol + cOffset;
+                const num = parseInt(cellVal.trim(), 10);
+                if (!isNaN(num)) {
+                  if (targetColIdx === 0) data[targetRowIdx].s1 = num;
+                  if (targetColIdx === 1) data[targetRowIdx].s2 = num;
+                  if (targetColIdx === 2) data[targetRowIdx].s3 = num;
+                }
+              });
+            }
+          });
+
+          buildTableOnce();
+          calc();
+        });
+      });
+    }
+
+    function updateRow(id) {
+      const item = data.find(x => x.id === id);
+      if (item) {
+        item.s1 = parseInt(document.getElementById(`inp_${id}_s1`).value) || 0;
+        item.s2 = parseInt(document.getElementById(`inp_${id}_s2`).value) || 0;
+        item.s3 = parseInt(document.getElementById(`inp_${id}_s3`).value) || 0;
+        document.getElementById(`tot_${id}`).innerText = item.s1 + item.s2 + item.s3;
+      }
+      calc();
+    }
+
+    function calc() {
+      let totalHC = 0;
+      data.forEach(x => totalHC += (x.s1 + x.s2 + x.s3));
+
+      document.getElementById("grandHC").innerText = totalHC;
+      document.getElementById("resHC").innerText = totalHC;
+
+      const vol = parseFloat(document.getElementById("inpVol").value) || 0;
+      const diff = parseFloat(document.getElementById("inpDiff").value) || 0;
+      const hrs = parseFloat(document.getElementById("inpHrs").value) || 8.5;
+      const tgt = parseFloat(document.getElementById("inpTarget").value) || 282;
+
+      const over = vol - diff;
+      document.getElementById("resOver").innerText = Math.round(over).toLocaleString();
+
+      const mh = totalHC * hrs;
+      document.getElementById("resMH").innerText = Math.round(mh).toLocaleString();
+
+      const expProd = mh > 0 ? Math.round(over / mh) : 0;
+      document.getElementById("resExpProd").innerText = expProd;
+      document.getElementById("topExpProd").innerText = expProd;
+      document.getElementById("topVol").innerText = Math.round(vol).toLocaleString();
+
+      const volMat = mh > 0 ? Math.round(vol / mh) : 0;
+      document.getElementById("resVolMat").innerText = volMat;
+
+      const reqMH = tgt > 0 ? (over / tgt) : 0;
+      const remMH = Math.round(reqMH - mh);
+      const remElem = document.getElementById("resRemMH");
+
+      if (!isNaN(remMH) && isFinite(remMH)) {
+        if (remMH >= 0) {
+          remElem.innerText = `+${remMH}`;
+          remElem.className = "text-xl font-black text-emerald-700";
+        } else {
+          remElem.innerText = remMH;
+          remElem.className = "text-xl font-black text-amber-800";
+        }
+      } else {
+        remElem.innerText = "0";
+      }
+
+      currentCalculatedValues = {
+        remMH: isNaN(remMH) ? 0 : remMH,
+        over: Math.round(over),
+        expProd: expProd,
+        mh: Math.round(mh),
+        volMat: volMat
+      };
+
+      // DITO ANG COLOR RULE CHECKING
+      const isTargetMet = (expProd >= tgt);
+
+      // 1. Right Side Metrics Card Styling
+      const expContainer = document.getElementById("expProdContainer");
+      const expTitle = document.getElementById("expProdTitle");
+      const expSub = document.getElementById("expProdSub");
+      const expVal = document.getElementById("resExpProd");
+
+      if (isTargetMet) {
+        expContainer.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between";
+        expTitle.className = "font-bold text-emerald-900";
+        expSub.className = "text-[10px] text-emerald-700";
+        expVal.className = "text-xl font-black text-emerald-700";
+      } else {
+        expContainer.className = "p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between";
+        expTitle.className = "font-bold text-red-900";
+        expSub.className = "text-[10px] text-red-700";
+        expVal.className = "text-xl font-black text-red-700";
+      }
+
+      // 2. Top Summary Card Styling
+      const topExpCard = document.getElementById("topExpCard");
+      const topExpProdVal = document.getElementById("topExpProd");
+      const topExpIconBox = document.getElementById("topExpIconBox");
+
+      if (isTargetMet) {
+        topExpCard.className = "bg-white rounded-xl p-4 shadow-sm border-l-4 border-emerald-500 flex items-center justify-between";
+        topExpProdVal.className = "text-3xl font-black text-emerald-600 mt-1";
+        topExpIconBox.className = "p-3 bg-emerald-50 text-emerald-600 rounded-xl";
+      } else {
+        topExpCard.className = "bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500 flex items-center justify-between";
+        topExpProdVal.className = "text-3xl font-black text-red-600 mt-1";
+        topExpIconBox.className = "p-3 bg-red-50 text-red-600 rounded-xl";
+      }
+
+      // 3. Target Comparison Card
+      const variance = expProd - tgt;
+      const tgtCard = document.getElementById("targetCard");
+      const tgtStatus = document.getElementById("targetStatus");
+      const tgtVar = document.getElementById("targetVar");
+
+      if (isTargetMet) {
+        tgtCard.className = "bg-emerald-50 rounded-xl p-4 shadow-sm border-l-4 border-emerald-500 flex items-center justify-between";
+        tgtStatus.className = "text-2xl font-black text-emerald-700 mt-1";
+        tgtStatus.innerText = "ABOVE TARGET";
+        tgtVar.className = "text-[11px] font-bold text-emerald-800";
+        tgtVar.innerText = `Variance: +${variance} units/hr`;
+      } else {
+        tgtCard.className = "bg-red-50 rounded-xl p-4 shadow-sm border-l-4 border-red-500 flex items-center justify-between";
+        tgtStatus.className = "text-2xl font-black text-red-700 mt-1";
+        tgtStatus.innerText = "BELOW TARGET";
+        tgtVar.className = "text-[11px] font-bold text-red-800";
+        tgtVar.innerText = `Variance: ${variance} units/hr`;
+      }
+
+      lucide.createIcons();
+    }
+
+    function saveCurrentToArchive() {
+      const curDate = document.getElementById("datePicker").value || new Date().toISOString().split('T')[0];
+      let totalHC = 0;
+      data.forEach(x => totalHC += (x.s1 + x.s2 + x.s3));
+      
+      const vol = parseFloat(document.getElementById("inpVol").value) || 0;
+      const diff = parseFloat(document.getElementById("inpDiff").value) || 0;
+      const hrs = parseFloat(document.getElementById("inpHrs").value) || 8.5;
+      const tgt = parseFloat(document.getElementById("inpTarget").value) || 282;
+
+      const entry = {
+        date: curDate,
+        vol: Math.round(vol),
+        diff: Math.round(diff),
+        over: currentCalculatedValues.over,
+        hc: totalHC,
+        hrs: hrs,
+        mh: currentCalculatedValues.mh,
+        expProd: currentCalculatedValues.expProd,
+        tgt: tgt,
+        volMat: currentCalculatedValues.volMat,
+        remMH: currentCalculatedValues.remMH,
+        status: currentCalculatedValues.expProd >= tgt ? 'ABOVE' : 'BELOW',
+        breakdown: JSON.parse(JSON.stringify(data))
+      };
+
+      archive = archive.filter(a => a.date !== curDate);
+      archive.unshift(entry);
+      localStorage.setItem('sp_calc_archive', JSON.stringify(archive));
+      renderArchive();
+      alert(`Na-dump na ang kumpletong record para sa petsang ${curDate}!`);
+    }
+
+    function renderArchive() {
+      const tbody = document.getElementById("historyTbody");
+      if (!tbody) return;
+      
+      tbody.innerHTML = "";
+      if (archive.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">Walang na-save na records. I-click ang "Save / Dump Today's Plan" para mag-dump ng data.</td></tr>`;
+        return;
+      }
+      archive.forEach(item => {
+        const isMet = item.expProd >= (item.tgt || 282);
+        const prodColor = isMet ? 'text-emerald-600 font-black' : 'text-red-600 font-black';
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-gray-50";
+        tr.innerHTML = `
+          <td class="p-2.5 font-bold text-gray-800">${item.date}</td>
+          <td class="p-2.5 text-right font-semibold">${item.vol.toLocaleString()}</td>
+          <td class="p-2.5 text-center">${item.hc}</td>
+          <td class="p-2.5 text-center">${item.mh.toLocaleString()}</td>
+          <td class="p-2.5 text-center ${prodColor}">${item.expProd}</td>
+          <td class="p-2.5 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${isMet ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${isMet ? 'ABOVE' : 'BELOW'}</span></td>
+          <td class="p-2.5 text-center">
+            <button onclick="openPureReference('${item.date}')" class="bg-[#EE4D2D] hover:bg-orange-600 text-white text-[11px] font-bold px-3 py-1 rounded shadow-sm flex items-center gap-1 mx-auto transition">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i> Open Reference
+            </button>
+          </td>
+          <td class="p-2.5 text-center"><button onclick="deleteArchive('${item.date}')" class="text-xs text-red-500 font-bold hover:underline">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function openPureReference(date) {
+      const item = archive.find(a => a.date === date);
+      if (!item) return;
+
+      document.getElementById("mainDashboard").style.display = "none";
+      document.getElementById("pureReferenceView").classList.remove("hidden");
+
+      const tgtVal = item.tgt || 282;
+      const volVal = item.vol || 0;
+      const diffVal = item.diff || 0;
+      const overVal = item.over !== undefined ? item.over : (volVal - diffVal);
+      const hcVal = item.hc || 0;
+      const hrsVal = item.hrs || 8.5;
+      const mhVal = item.mh || (hcVal * hrsVal);
+      const expProdVal = item.expProd || (mhVal > 0 ? Math.round(overVal / mhVal) : 0);
+
+      document.getElementById("refViewDate").innerText = `Summary & Category Breakdown for ${item.date}`;
+      document.getElementById("refVol").innerText = volVal.toLocaleString();
+      document.getElementById("refHC").innerText = hcVal.toLocaleString();
+      document.getElementById("refTgt").innerText = tgtVal.toLocaleString();
+
+      const isMet = (expProdVal >= tgtVal);
+
+      // Status Box Reference View
+      const statusBox = document.getElementById("refStatusBox");
+      const expProdElem = document.getElementById("refExpProd");
+      const statusLabel = document.getElementById("refStatusLabel");
+
+      expProdElem.innerText = `${expProdVal} (${isMet ? 'ABOVE TARGET' : 'BELOW TARGET'})`;
+
+      if (isMet) {
+        statusBox.className = "p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center";
+        statusLabel.className = "text-[10px] font-bold text-emerald-800 uppercase";
+        expProdElem.className = "text-2xl font-black text-emerald-700 mt-1";
+      } else {
+        statusBox.className = "p-4 bg-red-50 border border-red-200 rounded-xl text-center";
+        statusLabel.className = "text-[10px] font-bold text-red-800 uppercase";
+        expProdElem.className = "text-2xl font-black text-red-700 mt-1";
+      }
+
+      // Expected Productivity Metrics Container Reference View
+      const refExpProdContainer = document.getElementById("refExpProdContainer");
+      const refExpProdTitle = document.getElementById("refExpProdTitle");
+      const refExpProdSub = document.getElementById("refExpProdSub");
+      const refMetricExpProd = document.getElementById("refMetricExpProd");
+
+      if (isMet) {
+        refExpProdContainer.className = "p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between";
+        refExpProdTitle.className = "font-bold text-emerald-900";
+        refExpProdSub.className = "text-[10px] text-emerald-700";
+        refMetricExpProd.className = "text-xl font-black text-emerald-700";
+      } else {
+        refExpProdContainer.className = "p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between";
+        refExpProdTitle.className = "font-bold text-red-900";
+        refExpProdSub.className = "text-[10px] text-red-700";
+        refMetricExpProd.className = "text-xl font-black text-red-700";
+      }
+
+      document.getElementById("refMetricVol").innerText = volVal.toLocaleString();
+      document.getElementById("refMetricDiff").innerText = diffVal.toLocaleString();
+      document.getElementById("refMetricOver").innerText = overVal.toLocaleString();
+      document.getElementById("refMetricHC").innerText = hcVal.toLocaleString();
+      document.getElementById("refMetricHrs").innerText = hrsVal;
+      document.getElementById("refMetricMH").innerText = mhVal.toLocaleString();
+      document.getElementById("refMetricExpProd").innerText = expProdVal;
+      document.getElementById("refMetricTarget").innerText = tgtVal;
+      document.getElementById("refMetricVolMat").innerText = item.volMat !== undefined ? item.volMat : (mhVal > 0 ? Math.round(volVal / mhVal) : 0);
+
+      const exactRemMH = item.remMH !== undefined ? item.remMH : Math.round(((tgtVal > 0 ? (overVal / tgtVal) : 0) - mhVal));
+      const refRemElem = document.getElementById("refMetricRemMH");
+      refRemElem.innerText = exactRemMH >= 0 ? `+${exactRemMH}` : exactRemMH;
+      refRemElem.className = exactRemMH >= 0 ? "text-xl font-black text-emerald-700" : "text-xl font-black text-amber-800";
+
+      const refTbody = document.getElementById("refTableBody");
+      refTbody.innerHTML = "";
+      const bd = item.breakdown || defaultItems;
+      bd.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="p-2.5 pl-4 font-bold text-gray-800">${row.name}</td>
+          <td class="p-2 text-center font-semibold text-gray-600">${row.s1}</td>
+          <td class="p-2 text-center font-semibold text-gray-600">${row.s2}</td>
+          <td class="p-2 text-center font-semibold text-gray-600">${row.s3}</td>
+          <td class="p-2 text-center font-black bg-gray-100 text-gray-800">${row.s1 + row.s2 + row.s3}</td>
+        `;
+        refTbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function exitReferenceView() {
+      document.getElementById("pureReferenceView").classList.add("hidden");
+      document.getElementById("mainDashboard").style.display = "block";
+    }
+
+    function deleteArchive(date) {
+      if (confirm(`Sigurado ka bang gusto mong burahin ang record para sa ${date}?`)) {
+        archive = archive.filter(a => a.date !== date);
+        localStorage.setItem('sp_calc_archive', JSON.stringify(archive));
+        renderArchive();
+      }
+    }
+
+    function setDate(v) {
+      if (!v) return;
+      const d = new Date(v);
+      const str = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById("hdrDate").innerText = str;
+    }
+
+    function initDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById("datePicker").value = `${yyyy}-${mm}-${dd}`;
+      setDate(`${yyyy}-${mm}-${dd}`);
+    }
+
+    window.onload = function() {
+      initDate();
+      buildTableOnce();
+      calc();
+      renderArchive();
+    };
+  </script>
+</body>
+</html>
